@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'git@github.com:nhatttr/demo-webapp.git'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build('nodejs')
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://hub.docker.com', '320567dd-39ac-4f57-80f4-4c61cec59bee') {
+                        docker.image('nodejs').push('v1')
+                    }
+                }
+            }
+        }
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                    // Deploy to EC2 using AWS CLI or other tools
+                    // Example:
+                    sh 'aws ec2 run-instances --image-id your-ami-id --count 1 --instance-type t2.micro --key-name your-key-pair-name --security-group-ids your-security-group-id --subnet-id your-subnet-id --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=YourInstanceName}]"'
+                }
+            }
+        }
+    }
+}
